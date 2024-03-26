@@ -1,0 +1,370 @@
+PHP PRACTICAL 
+-----------------------------------
+
+DATABSE:blog
+TABLE : student (id,name,email)
+
+project7091>php artisan make:controller StudentController
+
+project7091>php artisan serve
+
+-----------------------------------
+
+web.php(routes->web.php)
+
+use App\Http\Controllers\StudentController;
+
+
+Route::get('student',[StudentController::class,'getdata']);
+Route::get('/student_add',[StudentController::class,'add'])->name("student.add");
+Route::post('/addsuccess',[StudentController::class,'success']);
+Route::get('edit/{student_id}',[StudentController::class,'edit'])->name("student.edit");
+Route::post('update/{student_id}',[StudentController::class,'update'])->name("student.update");
+Route::get('delete/{student_id}',[StudentController::class,'delete'])->name("student.delete");
+
+-----------------------------------
+
+/*create Model*/
+
+project7091> php artisan make:model student
+
+-----------------------------------
+
+Model(http->Models->student.php)
+
+<?php
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class student extends Model
+{
+    public $table = "student";
+    public $timestamps = false;
+}
+
+-----------------------------------
+
+StudentController(http->Controllers->StudentController)
+
+<?php
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\Student;
+use Validator;
+
+class StudentController extends Controller
+{
+    function getdata()
+    {
+        return student::all();
+    }
+
+    public function add(Request $request)
+    {
+        $students=Student::all();
+        return view('studentadd',compact('students'));
+    }
+
+    public function edit(Request $request,$student_id)
+    {
+        $student=Student::where('id',$student_id)->first();
+        return View('studentedit',compact('student'));
+    }
+
+    public function update(Request $request,$student_id)
+    {
+        $data=$request->all();
+        $rules=['student_name'=>"required|alpha",
+        'student_email'=>"required|email"];
+
+        $message=['student_name.required'=>"Name can't be blank",
+                   'student_email.required'=>"Email can't be blank" ];
+                   $validator=Validator::make($data,$rules,$message);
+
+        if($validator->fails())
+        {
+            return back()->withInput()->withErrors($validator);
+        }
+        Student::where('id',$student_id)->update([
+            'name'=>$request->student_name,
+            'email'=>$request->student_email,
+        ]);
+        return redirect()->route('student.add');
+    }
+
+    public function delete(Request $request,$student_id)
+    {
+        Student::where('id',$student_id)->delete();
+        return redirect()->route('student.add');
+    }
+
+    public function success(Request $request)
+    {
+        $data = $request->all();
+        $rules=['student_name'=>"required|alpha",
+        'student_email'=>"required|email"];
+
+        $message=['student_name.required'=>"Name can't be blank",
+                   'student_email.required'=>"Email can't be blank"
+                    ];
+                   $validator=Validator::make($data,$rules,$message);
+        if($validator->fails())
+        {
+            return back->withInput()->withErrors($validator);
+        }
+        Student::insert([
+            [
+                'name'=>$request->student_name,
+                'email'=>$request->student_email
+            ]]);
+        return redirect()->to('/student_add');
+    }    
+}
+-----------------------------------
+resourece->lang->en->validation.php
+
+<?php
+
+return [
+    'accepted' => 'The :attribute must be accepted.',
+    'accepted_if' => 'The :attribute must be accepted when :other is :value.',
+    'active_url' => 'The :attribute is not a valid URL.',
+    'after' => 'The :attribute must be a date after :date.',
+    'after_or_equal' => 'The :attribute must be a date after or equal to :date.',
+    'alpha' => 'The :attribute must only contain letters.',
+    'alpha_dash' => 'The :attribute must only contain letters, numbers, dashes and underscores.',
+    'alpha_num' => 'The :attribute must only contain letters and numbers.',
+    'array' => 'The :attribute must be an array.',
+    'before' => 'The :attribute must be a date before :date.',
+    'before_or_equal' => 'The :attribute must be a date before or equal to :date.',
+    'between' => [
+        'numeric' => 'The :attribute must be between :min and :max.',
+        'file' => 'The :attribute must be between :min and :max kilobytes.',
+        'string' => 'The :attribute must be between :min and :max characters.',
+        'array' => 'The :attribute must have between :min and :max items.',
+    ],
+    'boolean' => 'The :attribute field must be true or false.',
+    'confirmed' => 'The :attribute confirmation does not match.',
+    'current_password' => 'The password is incorrect.',
+    'date' => 'The :attribute is not a valid date.',
+    'date_equals' => 'The :attribute must be a date equal to :date.',
+    'date_format' => 'The :attribute does not match the format :format.',
+    'declined' => 'The :attribute must be declined.',
+    'declined_if' => 'The :attribute must be declined when :other is :value.',
+    'different' => 'The :attribute and :other must be different.',
+    'digits' => 'The :attribute must be :digits digits.',
+    'digits_between' => 'The :attribute must be between :min and :max digits.',
+    'dimensions' => 'The :attribute has invalid image dimensions.',
+    'distinct' => 'The :attribute field has a duplicate value.',
+    'email' => 'The :attribute must be a valid email address.',
+    'ends_with' => 'The :attribute must end with one of the following: :values.',
+    'exists' => 'The selected :attribute is invalid.',
+    'file' => 'The :attribute must be a file.',
+    'filled' => 'The :attribute field must have a value.',
+    'gt' => [
+        'numeric' => 'The :attribute must be greater than :value.',
+        'file' => 'The :attribute must be greater than :value kilobytes.',
+        'string' => 'The :attribute must be greater than :value characters.',
+        'array' => 'The :attribute must have more than :value items.',
+    ],
+    'gte' => [
+        'numeric' => 'The :attribute must be greater than or equal to :value.',
+        'file' => 'The :attribute must be greater than or equal to :value kilobytes.',
+        'string' => 'The :attribute must be greater than or equal to :value characters.',
+        'array' => 'The :attribute must have :value items or more.',
+    ],
+    'image' => 'The :attribute must be an image.',
+    'in' => 'The selected :attribute is invalid.',
+    'in_array' => 'The :attribute field does not exist in :other.',
+    'integer' => 'The :attribute must be an integer.',
+    'ip' => 'The :attribute must be a valid IP address.',
+    'ipv4' => 'The :attribute must be a valid IPv4 address.',
+    'ipv6' => 'The :attribute must be a valid IPv6 address.',
+    'json' => 'The :attribute must be a valid JSON string.',
+    'lt' => [
+        'numeric' => 'The :attribute must be less than :value.',
+        'file' => 'The :attribute must be less than :value kilobytes.',
+        'string' => 'The :attribute must be less than :value characters.',
+        'array' => 'The :attribute must have less than :value items.',
+    ],
+    'lte' => [
+        'numeric' => 'The :attribute must be less than or equal to :value.',
+        'file' => 'The :attribute must be less than or equal to :value kilobytes.',
+        'string' => 'The :attribute must be less than or equal to :value characters.',
+        'array' => 'The :attribute must not have more than :value items.',
+    ],
+    'max' => [
+        'numeric' => 'The :attribute must not be greater than :max.',
+        'file' => 'The :attribute must not be greater than :max kilobytes.',
+        'string' => 'The :attribute must not be greater than :max characters.',
+        'array' => 'The :attribute must not have more than :max items.',
+    ],
+    'mimes' => 'The :attribute must be a file of type: :values.',
+    'mimetypes' => 'The :attribute must be a file of type: :values.',
+    'min' => [
+        'numeric' => 'The :attribute must be at least :min.',
+        'file' => 'The :attribute must be at least :min kilobytes.',
+        'string' => 'The :attribute must be at least :min characters.',
+        'array' => 'The :attribute must have at least :min items.',
+    ],
+    'multiple_of' => 'The :attribute must be a multiple of :value.',
+    'not_in' => 'The selected :attribute is invalid.',
+    'not_regex' => 'The :attribute format is invalid.',
+    'numeric' => 'The :attribute must be a number.',
+    'password' => 'The password is incorrect.',
+    'present' => 'The :attribute field must be present.',
+    'prohibited' => 'The :attribute field is prohibited.',
+    'prohibited_if' => 'The :attribute field is prohibited when :other is :value.',
+    'prohibited_unless' => 'The :attribute field is prohibited unless :other is in :values.',
+    'prohibits' => 'The :attribute field prohibits :other from being present.',
+    'regex' => 'The :attribute format is invalid.',
+    'required' => 'The :attribute field is required.',
+    'required_if' => 'The :attribute field is required when :other is :value.',
+    'required_unless' => 'The :attribute field is required unless :other is in :values.',
+    'required_with' => 'The :attribute field is required when :values is present.',
+    'required_with_all' => 'The :attribute field is required when :values are present.',
+    'required_without' => 'The :attribute field is required when :values is not present.',
+    'required_without_all' => 'The :attribute field is required when none of :values are present.',
+    'same' => 'The :attribute and :other must match.',
+    'size' => [
+        'numeric' => 'The :attribute must be :size.',
+        'file' => 'The :attribute must be :size kilobytes.',
+        'string' => 'The :attribute must be :size characters.',
+        'array' => 'The :attribute must contain :size items.',
+    ],
+    'starts_with' => 'The :attribute must start with one of the following: :values.',
+    'string' => 'The :attribute must be a string.',
+    'timezone' => 'The :attribute must be a valid timezone.',
+    'unique' => 'The :attribute has already been taken.',
+    'uploaded' => 'The :attribute failed to upload.',
+    'url' => 'The :attribute must be a valid URL.',
+    'uuid' => 'The :attribute must be a valid UUID.',
+
+    'custom' => [
+        'attribute-name' => [
+            'rule-name' => 'custom-message',
+        ],
+    ],
+
+    'attributes' => [],
+
+];
+
+-----------------------------------
+
+studentadd.blade.php(resourece->views->studentadd.blade.php)
+
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Student Add</title>
+	<style type="text/css">
+		thead{color:red;}
+		thead{color: blue}
+	</style>
+
+</head>
+<body>
+
+	@if($errors -> any())
+	<ul>
+		@foreach ($errors ->all() as $error)
+		<li>{{$error}}</li>
+		@endforeach
+	</ul>
+	@endif
+
+	<form action="addsuccess" method="post" name= "frmaddstudent">
+		@csrf
+		Enter name
+		<input type="text" name="student_name" value="{{old('student_name')}}">
+		<br><br> 
+        Enter Email
+		<input type="text" name="student_email" value="{{old('student_email')}}">
+		<br><br> 		
+		<input type="submit" name="INSERT">
+
+		<h1>Student List</h1>
+
+			<table id='students' class="table" style="width:100%" border=1>
+				
+				<thead>
+					<tr>
+						<th>No</th>
+						<th>Student Name</th>
+						<th>Email</th>
+						<th>Action</th>
+					</tr>
+				</thead>
+			@if(count($students)>0)
+			<tbody>
+				@foreach($students as $student)
+				<tr>
+					<td>{{$student->id}}</td>
+					<td>{{$student->name}}</td>
+					<td>{{$student->email}}</td>
+					<td align="="center>
+						<a href="{{route('student.edit',$student->id)}}">
+							<img src="edit.png" height="25" width="25">
+						</a>
+						<a href="{{route('student.delete',$student->id)}}">
+							<img src="delete.png" height="25" width="25">
+						</a>
+					</td>
+				</tr>
+				@endforeach
+			</tbody>
+				@endif
+		
+
+</body>
+</html>
+
+-----------------------------------
+
+studentedit.blade.php(resourece->views->studentedit.blade.php)
+
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Edit profile</title>
+
+
+</head>
+<body>
+@if($errors->any())
+<ul>
+	@foreach($errors->all() as $error)
+	<li>{{$error}}</li>
+	@endforeach
+</ul>
+@endif
+	<form action="{{route('student.update',$student->id)}}" method="post" name="frmupdatestudent">
+	
+		@csrf
+		Enter name
+		<input type="text" name="student_name" value="{{$student->name}}">
+		<br><br> 
+        Enter Email
+		<input type="text" name="student_email" value="{{$student->email}}">
+		<br><br> 		
+		<input type="submit" name="UPDATE">
+	</form>
+</body>
+</html>
+
+
+-----------------------------------
+
+.env()
+
+DB_DATABASE=blog
+
+
